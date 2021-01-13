@@ -38,3 +38,14 @@
     regexp: '^\.\s+.*asdf\.sh'
     line: ". /opt/asdf/asdf.sh"
   tags: asdf
+- name: Make sure /etc/bash_completion.d exists
+  file:
+    path: /etc/bash_completion.d/
+    state: directory
+    mode: 0755
+- name: Symlink asdf bash completion
+  file:
+    src: "/opt/asdf/completions/asdf.bash"
+    dest: "/etc/bash_completion.d/asdf_completer"
+    state: link
+  tags: asdf
