@@ -32,9 +32,9 @@
     dest: "/opt/asdf"
     state: link
   tags: asdf
-- name: Symlink asdf bin
-  file:
-    src: "/opt/asdf/bin/asdf"
-    dest: "/usr/local/bin/asdf"
-    state: link
+- name: Install asdf to the path
+  lineinfile:
+    path: /etc/bash.bashrc
+    regexp: '^\.\s+.*asdf\.sh'
+    line: ". /opt/asdf/asdf.sh"
   tags: asdf
