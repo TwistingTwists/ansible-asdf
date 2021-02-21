@@ -32,17 +32,29 @@
     dest: "/opt/asdf"
     state: link
   tags: asdf
-- name: Install asdf to the path
-  lineinfile:
+- name: Install asdf to the path and enable root controlled configuration
+  blockinfile:
     path: /etc/bash.bashrc
-    regexp: '^\.\s+.*asdf\.sh'
-    line: ". /opt/asdf/asdf.sh"
+    marker: "# {mark} ANSIBLE MANAGED BLOCK asdf"
+    block: |
+      export ASDF_DATA_DIR=/opt/asdf
+      . /opt/asdf/asdf.sh
   tags: asdf
+  when: asdf_root_user_approach
+- name: Install asdf to the path and enable user controlled configuration
+  blockinfile:
+    path: /etc/bash.bashrc
+    marker: "# {mark} ANSIBLE MANAGED BLOCK asdf"
+    block: |
+      . /opt/asdf/asdf.sh
+  tags: asdf
+  when: not asdf_root_user_approach
 - name: Make sure /etc/bash_completion.d exists
   file:
     path: /etc/bash_completion.d/
     state: directory
     mode: 0755
+  tags: asdf
 - name: Symlink asdf bash completion
   file:
     src: "/opt/asdf/completions/asdf.bash"
