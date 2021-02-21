@@ -3,6 +3,6 @@
   hosts: all
 
   tasks:
-    - name: "Include ansible-java"
+    - name: Include this role
       include_role:
         name: "{{ lookup('env', 'MOLECULE_PROJECT_DIRECTORY') | basename }}"
