@@ -34,19 +34,19 @@
   tags: asdf
 - name: Install asdf to the path and enable root controlled configuration
   blockinfile:
-    path: ~/.bashrc
+    path: /etc/bash.bashrc
     marker: "# {mark} ANSIBLE MANAGED BLOCK asdf"
     block: |
       export ASDF_DATA_DIR=/opt/asdf
       . /opt/asdf/asdf.sh
-  become: no
   tags: asdf
   when: asdf_root_user_approach
 - name: Install asdf to the path and enable user controlled configuration
-  lineinfile:
+  blockinfile:
     path: /etc/bash.bashrc
-    regexp: '^\.\s+.*asdf\.sh'
-    line: ". /opt/asdf/asdf.sh"
+    marker: "# {mark} ANSIBLE MANAGED BLOCK asdf"
+    block: |
+      . /opt/asdf/asdf.sh
   tags: asdf
   when: not asdf_root_user_approach
 - name: Make sure /etc/bash_completion.d exists
