@@ -87,11 +87,23 @@
       skip_missing: True
   become: "{{ asdf_become }}"
   tags: asdf
+- name: Read app default versions
+  command: "/opt/asdf/bin/asdf current"
+  environment:
+    ASDF_DATA_DIR: "{{ asdf_data_dir }}"
+    PATH: "{{ ansible_env.PATH }}:/opt/asdf/bin/"
+  register: asdf_current_versions
+  ignore_errors: True
+  changed_when: False
+  become: no
+  tags: asdf
 - name: Define global asdf app default versions for the current user
   command: "/opt/asdf/bin/asdf global {{ item.name }} {{ item.global }}"
   environment:
     ASDF_DATA_DIR: "{{ asdf_data_dir }}"
-  when: item.global is defined
+  when: >
+    item.global is defined and asdf_current_versions.stdout
+    is not search('item.name + '\s+' + item.global + '\s+')
   with_items: "{{ asdf_plugins }}"
   become: no
   tags: asdf

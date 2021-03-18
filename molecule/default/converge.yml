@@ -9,6 +9,10 @@
         name: "{{ lookup('env', 'MOLECULE_PROJECT_DIRECTORY') | basename }}"
       vars:
         asdf_plugins:
+          - name: adr-tools
+            versions:
+              - 3.0.0
+            global: 3.0.0
           - name: terraform
             versions:
               - 0.12.26
