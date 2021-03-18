@@ -103,7 +103,7 @@
     ASDF_DATA_DIR: "{{ asdf_data_dir }}"
   when: >
     item.global is defined and asdf_current_versions.stdout
-    is not search('item.name + '\s+' + item.global + '\s+')
+    is not search(item.name + '\s+' + item.global + '\s+')
   with_items: "{{ asdf_plugins }}"
   become: no
   tags: asdf
