@@ -1,4 +1,18 @@
 ---
+- name: Include either root/opt or user specific vars
+  include_vars: "shared_user_approach_{{ asdf_shared_user_approach | bool }}.yml"
+  tags: asdf
+- name: Update apt cache.
+  apt: update_cache=yes cache_valid_time=3600
+  tags: asdf
+- name: Install tools commonly necessary to be able to install some asdf plugins
+  apt:
+    pkg:
+      - curl
+      - git
+      - gnupg-agent
+      - unzip
+  tags: asdf
 - name: Check if asdf {{ asdf_version }} already installed
   stat:
     path: /opt/asdf-{{ asdf_version }}
@@ -36,19 +50,8 @@
   blockinfile:
     path: /etc/bash.bashrc
     marker: "# {mark} ANSIBLE MANAGED BLOCK asdf"
-    block: |
-      export ASDF_DATA_DIR=/opt/asdf
-      . /opt/asdf/asdf.sh
+    block: "{{ asdf_bashrc }}"
   tags: asdf
-  when: asdf_root_user_approach
-- name: Install asdf to the path and enable user controlled configuration
-  blockinfile:
-    path: /etc/bash.bashrc
-    marker: "# {mark} ANSIBLE MANAGED BLOCK asdf"
-    block: |
-      . /opt/asdf/asdf.sh
-  tags: asdf
-  when: not asdf_root_user_approach
 - name: Make sure /etc/bash_completion.d exists
   file:
     path: /etc/bash_completion.d/
@@ -60,4 +63,35 @@
     src: "/opt/asdf/completions/asdf.bash"
     dest: "/etc/bash_completion.d/asdf_completer"
     state: link
+  tags: asdf
+- name: Install asdf plugins
+  command: "/opt/asdf/bin/asdf plugin add {{ item.name }}"
+  args:
+    creates: "{{ asdf_data_dir }}/plugins/{{ item.name }}"
+  environment:
+    ASDF_DATA_DIR: "{{ asdf_data_dir }}"
+  with_items: "{{ asdf_plugins }}"
+  become: "{{ asdf_become }}"
+  tags: asdf
+- name: Install app versions for the asdf plugins
+  command: "/opt/asdf/bin/asdf install {{ item.0.name }} {{ item.1 }}"
+  args:
+    creates: "{{ asdf_data_dir }}/installs/{{ item.0.name }}/{{ item.1 }}"
+  environment:
+    ASDF_DATA_DIR: "{{ asdf_data_dir }}"
+    PATH: "{{ ansible_env.PATH }}:/opt/asdf/bin/"
+  with_subelements:
+    - "{{ asdf_plugins }}"
+    - versions
+    - flags:
+      skip_missing: True
+  become: "{{ asdf_become }}"
+  tags: asdf
+- name: Define global asdf app default versions for the current user
+  command: "/opt/asdf/bin/asdf global {{ item.name }} {{ item.global }}"
+  environment:
+    ASDF_DATA_DIR: "{{ asdf_data_dir }}"
+  when: item.global is defined
+  with_items: "{{ asdf_plugins }}"
+  become: no
   tags: asdf
